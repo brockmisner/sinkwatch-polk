@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: sinkwatch
+      POSTGRES_USER: sinkwatch
+      POSTGRES_PASSWORD: sinkwatch
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.3
+    command: mlflow server --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: postgresql+psycopg://sinkwatch:sinkwatch@postgis:5432/sinkwatch
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgis
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    command: python -m apps.worker.main
+    environment:
+      DATABASE_URL: postgresql+psycopg://sinkwatch:sinkwatch@postgis:5432/sinkwatch
+    depends_on:
+      - postgis
+
+volumes:
+  postgis_data:
