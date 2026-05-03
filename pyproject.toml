@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sinkwatch-polk"
+version = "0.1.0"
+description = "Human-in-the-loop geospatial ML platform for subsidence candidate screening"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "typer>=0.12.0",
+  "sqlalchemy>=2.0.0",
+  "alembic>=1.13.0",
+  "psycopg[binary]>=3.1.0",
+  "pydantic>=2.8.0",
+]
+
+[project.optional-dependencies]
+geo = [
+  "geopandas>=1.0.0",
+  "shapely>=2.0.0",
+  "rasterio>=1.3.0",
+  "pyproj>=3.6.0",
+]
+dev = [
+  "pytest>=8.2.0",
+  "ruff>=0.6.0",
+  "mypy>=1.10.0",
+  "httpx>=0.28.0",
+]
+
+[project.scripts]
+sinkwatch = "sinkwatch.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["sinkwatch"]
+ignore_missing_imports = true
